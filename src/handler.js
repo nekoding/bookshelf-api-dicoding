@@ -104,7 +104,21 @@ const getAllBooks = (req, h) => {
 
   // filter name
   if (filter.name !== undefined || filter.name?.length > 0) {
-    // data = books.filter((book) => book.include);
+    data = books
+      .filter(
+        (book) => book.name
+          .toLocaleLowerCase()
+          .indexOf(filter.name.toLocaleLowerCase()) > -1,
+      )
+      .map((book) => {
+        const { id, name, publisher } = book;
+
+        return {
+          id,
+          name,
+          publisher,
+        };
+      });
   }
 
   // filter reading
