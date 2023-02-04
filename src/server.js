@@ -18,4 +18,6 @@ const PORT = 9000;
   server.route(routes);
 
   await server.start();
+
+  console.log(`Server berjalan pada port :${PORT}`);
 })();

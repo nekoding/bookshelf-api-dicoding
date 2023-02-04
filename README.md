@@ -2,6 +2,20 @@
 
 Submission untuk kelas belajar backend dicoding
 
+#### Usage
+
+Install dependency 
+
+```sh
+npm i
+```
+
+Jalankan aplikasi dengan perintah
+
+```sh
+npm run start
+```
+
 #### Struktur data
 
 Buku disimpan:
