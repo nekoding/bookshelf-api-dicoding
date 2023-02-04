@@ -1,6 +1,7 @@
 const { nanoid } = require('nanoid');
 const books = require('./books');
 const ValidationException = require('./exceptions/ValidationException');
+const NotFoundException = require('./exceptions/NotFoundException');
 
 const saveBooks = (req, h) => {
   try {
@@ -14,7 +15,6 @@ const saveBooks = (req, h) => {
       readPage,
       reading,
     } = req.payload;
-    const id = nanoid(16);
 
     // validation name
     if (name === undefined || name?.length < 1) {
@@ -30,8 +30,9 @@ const saveBooks = (req, h) => {
       );
     }
 
-    const createdAt = new Date().toISOString();
-    const updatedAt = createdAt;
+    const id = nanoid(16);
+    const insertedAt = new Date().toISOString();
+    const updatedAt = insertedAt;
     const finished = pageCount === readPage;
 
     const newBook = {
@@ -45,7 +46,7 @@ const saveBooks = (req, h) => {
       readPage,
       finished,
       reading,
-      createdAt,
+      insertedAt,
       updatedAt,
     };
 
@@ -64,6 +65,7 @@ const saveBooks = (req, h) => {
         bookId: id,
       },
     });
+
     response.code(201);
     return response;
   } catch (error) {
@@ -101,7 +103,7 @@ const getAllBooks = (req, h) => {
   const response = h.response({
     status: 'success',
     data: {
-      data,
+      books: data,
     },
   });
 
@@ -110,12 +112,142 @@ const getAllBooks = (req, h) => {
 };
 
 const getBooksById = (req, h) => {
-  const { bookId } = req.params;
+  try {
+    const { bookId } = req.params;
+
+    const book = books.filter((b) => b.id === bookId)[0];
+
+    if (book === undefined) {
+      throw new NotFoundException('Buku tidak ditemukan');
+    }
+
+    const response = h.response({
+      status: 'success',
+      data: {
+        book,
+      },
+    });
+
+    response.code(200);
+    return response;
+  } catch (error) {
+    const response = h.response({
+      status: 'fail',
+      message: error.message,
+    });
+
+    response.code(404);
+    return response;
+  }
 };
 
-const updateBooksById = (req, h) => {};
+const updateBooksById = (req, h) => {
+  try {
+    const { bookId } = req.params;
+    const {
+      name,
+      year,
+      author,
+      summary,
+      publisher,
+      pageCount,
+      readPage,
+      reading,
+    } = req.payload;
 
-const deleteBooksById = (req, h) => {};
+    // validation name
+    if (name === undefined || name?.length < 1) {
+      throw new ValidationException(
+        'Gagal memperbarui buku. Mohon isi nama buku',
+      );
+    }
+
+    // validation readPage
+    if (readPage > pageCount) {
+      throw new ValidationException(
+        'Gagal memperbarui buku. readPage tidak boleh lebih besar dari pageCount',
+      );
+    }
+
+    const index = books.findIndex((book) => book.id === bookId);
+
+    if (index < 0) {
+      throw new NotFoundException('Gagal memperbarui buku. Id tidak ditemukan');
+    }
+
+    const updatedAt = new Date().toISOString();
+    const data = {
+      name,
+      year,
+      author,
+      summary,
+      publisher,
+      pageCount,
+      readPage,
+      reading,
+    };
+    books[index] = {
+      ...books[index],
+      ...data,
+      updatedAt,
+    };
+
+    const response = h.response({
+      status: 'success',
+      message: 'Buku berhasil diperbarui',
+    });
+
+    response.code(200);
+    return response;
+  } catch (error) {
+    if (error instanceof ValidationException) {
+      const response = h.response({
+        status: 'fail',
+        message: error.message,
+      });
+
+      response.code(400);
+      return response;
+    }
+
+    const response = h.response({
+      status: 'fail',
+      message: error.message,
+    });
+
+    response.code(404);
+    return response;
+  }
+};
+
+const deleteBooksById = (req, h) => {
+  try {
+    const { bookId } = req.params;
+
+    const index = books.findIndex((book) => book.id === bookId);
+
+    if (index < 0) {
+      throw new NotFoundException('Buku gagal dihapus. Id tidak ditemukan');
+    }
+
+    books.splice(index, 1);
+    const response = h.response({
+      status: 'success',
+      message: 'Buku berhasil dihapus',
+    });
+
+    response.code(200);
+    return response;
+  } catch (error) {
+    const response = h.response({
+      status: 'fail',
+      message: error.message,
+    });
+
+    response.code(404);
+    return response;
+  }
+};
 
 module.exports = {
   saveBooks,
