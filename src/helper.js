@@ -1,5 +1,3 @@
-const formValidation = (data) => {
-    
-};
+const formValidation = (data) => {};
 
 module.exports = { formValidation };
