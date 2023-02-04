@@ -90,7 +90,9 @@ const saveBooks = (req, h) => {
 };
 
 const getAllBooks = (req, h) => {
-  const data = books.map((book) => {
+  const filter = req.query;
+
+  let data = books.map((book) => {
     const { id, name, publisher } = book;
 
     return {
@@ -99,6 +101,45 @@ const getAllBooks = (req, h) => {
       publisher,
     };
   });
+
+  // filter name
+  if (filter.name !== undefined || filter.name?.length > 0) {
+    // data = books.filter((book) => book.include);
+  }
+
+  // filter reading
+  if (filter.reading !== undefined || filter.reading?.length > 0) {
+    if ([0, 1].includes(+filter.reading)) {
+      data = books
+        .filter((book) => book.reading === Boolean(+filter.reading))
+        .map((book) => {
+          const { id, name, publisher } = book;
+
+          return {
+            id,
+            name,
+            publisher,
+          };
+        });
+    }
+  }
+
+  // filter finished
+  if (filter.finished !== undefined || filter.finished?.length > 0) {
+    if ([0, 1].includes(+filter.finished)) {
+      data = books
+        .filter((book) => book.finished === Boolean(+filter.finished))
+        .map((book) => {
+          const { id, name, publisher } = book;
+
+          return {
+            id,
+            name,
+            publisher,
+          };
+        });
+    }
+  }
 
   const response = h.response({
     status: 'success',
